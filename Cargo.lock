@@ -448,6 +448,7 @@ checksum = "bd070e393353796e801d209ad339e89596eb4c8d430d18ede6a1cced8fafbd99"
 dependencies = [
  "autocfg",
  "hashbrown",
+ "serde 1.0.152",
 ]
 
 [[package]]
@@ -786,6 +787,7 @@ dependencies = [
  "serde 1.0.160",
  "serde-hjson",
  "serde-protobuf",
+ "serde-smile",
  "serde_cbor",
  "serde_json",
  "serde_yaml",
@@ -934,6 +936,28 @@ dependencies = [
  "protobuf",
  "serde 1.0.160",
  "thiserror",
+]
+
+[[package]]
+name = "serde-smile"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "717a63a44eff4f0e4a02ef12d672221265b1610979e70303388a5a8c1a4cd1f2"
+dependencies = [
+ "indexmap",
+ "itoa 1.0.3",
+ "memchr",
+ "serde 1.0.152",
+ "serde_bytes",
+]
+
+[[package]]
+name = "serde_bytes"
+version = "0.11.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "718dc5fff5b36f99093fc49b280cfc96ce6fc824317783bff5a1fed0c7a64819"
+dependencies = [
+ "serde 1.0.152",
 ]
 
 [[package]]
