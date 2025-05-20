@@ -4,6 +4,7 @@ extern crate log;
 extern crate structopt;
 
 use record_query as rq;
+use record_query::error::Error;
 use std::env;
 use std::fs;
 use std::io;
@@ -307,8 +308,7 @@ fn read_avro_schema_from_file(path: &path::Path) -> rq::error::Result<avro_rs::S
     let mut file = fs::File::open(path)?;
     let mut buffer = String::new();
     file.read_to_string(&mut buffer)?;
-    avro_rs::Schema::parse_str(&buffer)
-        .map_err(|e| rq::error::Error::Avro(rq::error::Avro::downcast(e)))
+    avro_rs::Schema::parse_str(&buffer).map_err(|e| e.into())
 }
 
 fn run_source_sink<I, O>(mut source: I, mut sink: O) -> rq::error::Result<()>
@@ -367,37 +367,38 @@ fn set_ran_cmd(cmd: &str) -> rq::error::Result<()> {
     Ok(())
 }
 
-fn log_error(args: &Options, error: &rq::error::Error) {
-    use failure::Fail;
-
+fn log_error(_args: &Options, error: &rq::error::Error) {
     let main_str = format!("{}", error);
     let mut main_lines = main_str.lines();
     error!("Encountered: {}", main_lines.next().unwrap());
     for line in main_lines {
         error!("  {}", line);
     }
-    for e in <dyn failure::Fail>::iter_causes(error) {
+    let mut error: Option<&(dyn std::error::Error + 'static)> = Some(error);
+    while let Some(e) = error {
         let sub_str = format!("{}", e);
         let mut sub_lines = sub_str.lines();
         error!("Caused by: {}", sub_lines.next().unwrap());
         for line in sub_lines {
             error!("  {}", line);
         }
+        error = e.source();
     }
 
-    if args.flag_trace || env::var("RUST_BACKTRACE").as_ref().map(String::as_str) == Ok("1") {
-        error!("");
-        if let Some(backtrace) = error.backtrace() {
-            error!("Backtrace:");
-            for line in format!("{:?}", backtrace).lines() {
-                error!("  {}", line);
-            }
-        } else {
-            error!("(No backtrace available)");
-        }
-    } else {
-        error!("(Re-run with --trace or RUST_BACKTRACE=1 for a backtrace)");
-    }
+    // TODO: can't log traces on non-nightly with thiserror only... Hm
+    // if args.flag_trace || env::var("RUST_BACKTRACE").as_ref().map(String::as_str) == Ok("1") {
+    //     error!("");
+    //     if let Some(backtrace) = error.backtrace() {
+    //         error!("Backtrace:");
+    //         for line in format!("{:?}", backtrace).lines() {
+    //             error!("  {}", line);
+    //         }
+    //     } else {
+    //         error!("(No backtrace available)");
+    //     }
+    // } else {
+    //     error!("(Re-run with --trace or RUST_BACKTRACE=1 for a backtrace)");
+    // }
 }
 
 fn setup_log(spec: Option<&str>, quiet: bool) {
@@ -419,14 +420,14 @@ fn setup_log(spec: Option<&str>, quiet: bool) {
 }
 
 impl str::FromStr for Format {
-    type Err = failure::Error;
+    type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "compact" => Ok(Self::Compact),
             "readable" => Ok(Self::Readable),
             "indented" => Ok(Self::Indented),
-            _ => Err(failure::err_msg(format!("unrecognized format: {}", s))),
+            _ => Err(Error::Message(format!("unrecognized format: {}", s))),
         }
     }
 }

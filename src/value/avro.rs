@@ -18,9 +18,7 @@ pub fn source<'a, R>(r: R) -> error::Result<Source<'a, R>>
 where
     R: io::Read,
 {
-    Ok(Source(avro_rs::Reader::new(r).map_err(|e| {
-        error::Error::Avro(error::Avro::downcast(e))
-    })?))
+    Ok(Source(avro_rs::Reader::new(r)?))
 }
 
 #[inline]
@@ -39,7 +37,7 @@ where
     fn read(&mut self) -> error::Result<Option<value::Value>> {
         match self.0.next() {
             Some(Ok(v)) => Ok(Some(value_from_avro(v))),
-            Some(Err(e)) => Err(error::Error::Avro(error::Avro::downcast(e))),
+            Some(Err(e)) => Err(e.into()),
             None => Ok(None),
         }
     }
@@ -68,6 +66,14 @@ fn value_from_avro(value: avro_rs::types::Value) -> value::Value {
                 .map(|(k, v)| (value::Value::String(k), value_from_avro(v)))
                 .collect(),
         ),
+        Value::Date(_v) => todo!(),
+        Value::TimeMillis(_v) => todo!(),
+        Value::TimeMicros(_v) => todo!(),
+        Value::TimestampMillis(_v) => todo!(),
+        Value::TimestampMicros(_v) => todo!(),
+        Value::Duration(_v) => todo!(),
+        Value::Decimal(_v) => todo!(),
+        Value::Uuid(_v) => todo!(),
     }
 }
 
@@ -77,9 +83,7 @@ where
 {
     #[inline]
     fn write(&mut self, value: value::Value) -> error::Result<()> {
-        self.0
-            .append(value_to_avro(value)?)
-            .map_err(|e| error::Error::Avro(error::Avro::downcast(e)))?;
+        self.0.append(value_to_avro(value)?)?;
         Ok(())
     }
 }

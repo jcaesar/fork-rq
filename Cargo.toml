@@ -32,7 +32,6 @@ directories = "6.0.0"
 dtoa = "0.4.8"
 itoa = "0.4.8"
 env_logger = "0.11.8"
-failure = "0.1.8"
 glob = "0.3.2"
 log = "0.4.27"
 nix = "0.30.1"
@@ -50,9 +49,10 @@ serde_json = "1.0.140"
 serde_yaml = "0.9.34"
 structopt = "0.3.26"
 yaml-rust = "0.4.5"
+thiserror = "2.0.12"
 
 [dependencies.avro-rs]
-version = "0.6.6"
+version = "0.13.0"
 features = ["snappy"]
 
 [dependencies.toml]
