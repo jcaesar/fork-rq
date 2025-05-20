@@ -26,7 +26,7 @@ where
     R: io::Read,
 {
     Ok(Source(
-        serde_smile::de::Deserializer::new(serde_smile::de::IoRead::new(io::BufReader::new(r)))?
+        serde_smile::de::Deserializer::new(serde_smile::de::IoRead::new(io::BufReader::new(r)))
             .into_iter(),
     ))
 }
@@ -39,7 +39,7 @@ where
     Ok(Sink(
         serde_smile::ser::Serializer::builder()
             .shared_strings(true)
-            .build(w)?,
+            .build(w),
     ))
 }
 
