@@ -20,7 +20,7 @@ pub mod error;
 pub mod proto_index;
 pub mod value;
 
-pub const VERSION: &str = env!("VERGEN_GIT_SEMVER");
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[doc(hidden)]
 #[deprecated(since = "1.0.1", note = "use VERSION instead")]
