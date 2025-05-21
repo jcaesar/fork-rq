@@ -21,7 +21,8 @@ where
     W: io::Write,
     F: Clone + serde_json::ser::Formatter;
 
-#[derive(Clone, Debug)]
+#[allow(missing_debug_implementations)]
+#[derive(Clone)]
 pub struct ReadableFormatter {
     current_indent: usize,
     is_in_object_key: bool,
@@ -47,6 +48,9 @@ pub struct ReadableFormatter {
     object_key_quote_style: ansi_term::Style,
     object_key_char_style: ansi_term::Style,
     object_key_escape_style: ansi_term::Style,
+
+    dtoa: dtoa::Buffer,
+    itoa: itoa::Buffer,
 }
 
 #[inline]
@@ -141,33 +145,44 @@ impl ReadableFormatter {
             object_key_quote_style: Colour::Blue.dimmed(),
             object_key_char_style: Colour::Blue.normal(),
             object_key_escape_style: Colour::Blue.dimmed(),
+
+            dtoa: dtoa::Buffer::new(),
+            itoa: itoa::Buffer::new(),
         }
     }
 
     /// Writes an integer value like `-123` to the specified writer.
     #[inline]
-    fn write_integer<W, I>(&mut self, mut writer: &mut W, value: I) -> io::Result<()>
+    fn write_integer<W, I>(&mut self, writer: &mut W, value: I) -> io::Result<()>
     where
         W: io::Write + ?Sized,
         I: itoa::Integer,
     {
-        write!(writer, "{}", self.number_style.prefix())?;
-        itoa::write(&mut writer, value)?;
-        write!(writer, "{}", self.number_style.suffix())?;
+        write!(
+            writer,
+            "{}{}{}",
+            self.number_style.prefix(),
+            self.itoa.format(value),
+            self.number_style.suffix(),
+        )?;
         Ok(())
     }
 
     /// Writes a floating point value like `-31.26e+12` to the
     /// specified writer.
     #[inline]
-    fn write_floating<W, F>(&mut self, mut writer: &mut W, value: F) -> io::Result<()>
+    fn write_floating<W, F>(&mut self, writer: &mut W, value: F) -> io::Result<()>
     where
         W: io::Write + ?Sized,
-        F: dtoa::Floating,
+        F: dtoa::Float,
     {
-        write!(writer, "{}", self.number_style.prefix())?;
-        dtoa::write(&mut writer, value)?;
-        write!(writer, "{}", self.number_style.suffix())?;
+        write!(
+            writer,
+            "{}{}{}",
+            self.number_style.prefix(),
+            self.dtoa.format(value),
+            self.number_style.suffix(),
+        )?;
         Ok(())
     }
 }
