@@ -1,3 +1,5 @@
+#![allow(non_local_definitions)] // avro old, requires failure, which is unmaintained, yay
+
 use csv;
 use glob;
 use protobuf;
@@ -10,8 +12,6 @@ use serde_yaml;
 use std::io;
 use std::string;
 use toml;
-#[cfg(feature = "v8")]
-use v8;
 use yaml_rust;
 
 use std::result;
@@ -132,8 +132,6 @@ macro_rules! gen_from {
 
 gen_from!(serde_protobuf::error::Error, Protobuf);
 gen_from!(io::Error, Io);
-#[cfg(feature = "js")]
-gen_from!(v8::error::Error, Js);
 gen_from!(string::FromUtf8Error, Utf8);
 gen_from!(protobuf::ProtobufError, NativeProtobuf);
 gen_from!(rmpv::encode::Error, MessagePackEncode);
