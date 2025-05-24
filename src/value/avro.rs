@@ -44,36 +44,38 @@ where
 }
 
 fn value_from_avro(value: avro_rs::types::Value) -> value::Value {
-    use avro_rs::types::Value;
+    use avro_rs::types::Value as From;
+    use value::Value as To;
     match value {
-        Value::Null => value::Value::Unit,
-        Value::Boolean(v) => value::Value::Bool(v),
-        Value::Int(v) => value::Value::I32(v),
-        Value::Long(v) => value::Value::I64(v),
-        Value::Float(v) => value::Value::from_f32(v),
-        Value::Double(v) => value::Value::from_f64(v),
-        Value::Bytes(v) | Value::Fixed(_, v) => value::Value::Bytes(v),
-        Value::String(v) | Value::Enum(_, v) => value::Value::String(v),
-        Value::Union(boxed) => value_from_avro(*boxed),
-        Value::Array(v) => value::Value::Sequence(v.into_iter().map(value_from_avro).collect()),
-        Value::Map(v) => value::Value::Map(
+        From::Null => To::Unit,
+        From::Boolean(v) => To::Bool(v),
+        From::Int(v) => To::I32(v),
+        From::Long(v) => To::I64(v),
+        From::Float(v) => To::from_f32(v),
+        From::Double(v) => To::from_f64(v),
+        From::Bytes(v) | From::Fixed(_, v) => To::Bytes(v),
+        From::String(v) | From::Enum(_, v) => To::String(v),
+        From::Union(boxed) => value_from_avro(*boxed),
+        From::Array(v) => To::Sequence(v.into_iter().map(value_from_avro).collect()),
+        From::Map(v) => To::Map(
             v.into_iter()
-                .map(|(k, v)| (value::Value::String(k), value_from_avro(v)))
+                .map(|(k, v)| (To::String(k), value_from_avro(v)))
                 .collect(),
         ),
-        Value::Record(v) => value::Value::Map(
+        From::Record(v) => To::Map(
             v.into_iter()
-                .map(|(k, v)| (value::Value::String(k), value_from_avro(v)))
+                .map(|(k, v)| (To::String(k), value_from_avro(v)))
                 .collect(),
         ),
-        Value::Date(_v) => todo!(),
-        Value::TimeMillis(_v) => todo!(),
-        Value::TimeMicros(_v) => todo!(),
-        Value::TimestampMillis(_v) => todo!(),
-        Value::TimestampMicros(_v) => todo!(),
-        Value::Duration(_v) => todo!(),
-        Value::Decimal(_v) => todo!(),
-        Value::Uuid(_v) => todo!(),
+        From::Date(v) => todo!(),
+        From::TimeMillis(v) => To::I32(v),
+        From::TimeMicros(v) => To::I64(v),
+        From::TimestampMillis(v) => To::I64(v),
+        From::TimestampMicros(v) => To::I64(v),
+        From::Duration(v) => To::from_f64(v.to_secs_f64()),
+        From::Decimal(v) => todo!(),
+        // Possibly, this might need its own value variant, because human-readable datatypes need different formatting. TODO
+        From::Uuid(v) => To::Bytes(v.as_bytes().to_vec()),
     }
 }
 
